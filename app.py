@@ -10,10 +10,18 @@ st.caption("An AI-generated guessing game. Something is off.")
 
 st.sidebar.header("Settings")
 
+#FIX: Reset the game when difficulty changes
+def reset_game_for_difficulty():
+    st.session_state.secret = random.randint(*get_range_for_difficulty(st.session_state.difficulty))
+    st.session_state.attempts = 0
+    st.session_state.status = "playing"
+    st.session_state.history = []
+
 difficulty = st.sidebar.selectbox(
     "Difficulty",
     ["Easy", "Normal", "Hard"],
-    index = 1,
+    index = 1, key = "difficulty",
+    on_change = reset_game_for_difficulty,
 )
 
 attempt_limit_map = {
@@ -31,8 +39,9 @@ st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 if "secret" not in st.session_state:
     st.session_state.secret = random.randint(low, high)
 
+#FIX: Changed the initial attempts to 0 so it is consistent across games
 if "attempts" not in st.session_state:
-    st.session_state.attempts = 1
+    st.session_state.attempts = 0
 
 if "score" not in st.session_state:
     st.session_state.score = 0
@@ -46,7 +55,7 @@ if "history" not in st.session_state:
 st.subheader("Make a guess")
 
 st.info(
-    f"Guess a number between 1 and 100. "
+    f"Guess a number between {low} and {high}. "
     f"Attempts left: {attempt_limit - st.session_state.attempts}"
 )
 
@@ -70,9 +79,13 @@ with col2:
 with col3:
     show_hint = st.checkbox("Show hint", value=True)
 
+
+#FIX: Reset each of the sessions state variables to ensure it really is a new game
 if new_game:
-    st.session_state.attempts = 0
     st.session_state.secret = random.randint(low, high)
+    st.session_state.attempts = 0
+    st.session_state.status = "playing"
+    st.session_state.history = []
     st.success("New game started.")
     st.rerun()
 
